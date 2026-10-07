@@ -1,4 +1,19 @@
-# Báo cáo Day 6: Độ nhạy calibration LiDAR–camera với yaw drift
+"""Generate report only from measured CSVs; prepared with Codex."""
+import json
+from pathlib import Path
+import pandas as pd
+
+def main():
+    out = Path('results')
+    summary = pd.read_csv(out/'yaw_summary.csv')
+    frames = pd.read_csv(out/'frame_manifest.csv',dtype={'frame':str})
+    failure = json.loads((out/'failure_case.json').read_text())
+    table = '\n'.join(f"| {r.dataset} | {r.yaw_deg:g} | {r.fov_pct:.2f} | {r.gt_inside_own_box_pct:.2f} | {r.retention_pct:.2f} | {r.mean_shift_px:.2f} |" for r in summary.itertuples())
+    max_retention = summary[summary.yaw_deg.abs()==3].retention_pct.max()
+    supported = max_retention < 80
+    claim = f"Trên 20 frame KITTI và 80 frame nuScenes, yaw ±3° làm mất hơn 20% tập điểm tham chiếu thuộc vật thể. Retention cao nhất ở bốn cấu hình này là {max_retention:.2f}%; claim {'được ủng hộ' if supported else 'bị bác bỏ'} bởi số liệu."
+    frame_text = '; '.join(f"{name}: " + ', '.join(group.frame) for name,group in frames.groupby('dataset'))
+    text = f'''# Báo cáo Day 6: Độ nhạy calibration LiDAR–camera với yaw drift
 
 - **Họ tên:** Nguyễn Văn Ước
 - **MSSV:** 2A202602445
@@ -7,11 +22,11 @@
 - **Tên repo khi nộp theo đề:** NguyenVanUoc-2A202602445-Track4-Day21 (remote hiện tại chưa có tên này).
 - **Topic:** A — LiDAR-camera projection QA (mức Good)
 - **Dataset:** data/kitti_mini, data/nuscenes_mini_subset; synthetic dùng kiểm chứng hình học.
-- **Các frame đã dùng:** kitti_mini: 000001, 000004, 000007, 000008, 000009, 000010, 000011, 000012, 000015, 000016, 000019, 000021, 000023, 000025, 000031, 000032, 000043, 000048, 000049, 000061; nuscenes_mini_subset: scene-0103_000, scene-0103_001, scene-0103_002, scene-0103_003, scene-0103_004, scene-0103_005, scene-0103_006, scene-0103_007, scene-0103_008, scene-0103_009, scene-0103_010, scene-0103_011, scene-0103_012, scene-0103_013, scene-0103_014, scene-0103_015, scene-0103_016, scene-0103_017, scene-0103_018, scene-0103_019, scene-0103_020, scene-0103_021, scene-0103_022, scene-0103_023, scene-0103_024, scene-0103_025, scene-0103_026, scene-0103_027, scene-0103_028, scene-0103_029, scene-0103_030, scene-0103_031, scene-0103_032, scene-0103_033, scene-0103_034, scene-0103_035, scene-0103_036, scene-0103_037, scene-0103_038, scene-0103_039, scene-1094_000, scene-1094_001, scene-1094_002, scene-1094_003, scene-1094_004, scene-1094_005, scene-1094_006, scene-1094_007, scene-1094_008, scene-1094_009, scene-1094_010, scene-1094_011, scene-1094_012, scene-1094_013, scene-1094_014, scene-1094_015, scene-1094_016, scene-1094_017, scene-1094_018, scene-1094_019, scene-1094_020, scene-1094_021, scene-1094_022, scene-1094_023, scene-1094_024, scene-1094_025, scene-1094_026, scene-1094_027, scene-1094_028, scene-1094_029, scene-1094_030, scene-1094_031, scene-1094_032, scene-1094_033, scene-1094_034, scene-1094_035, scene-1094_036, scene-1094_037, scene-1094_038, scene-1094_039. Synthetic kiểm thử: 000000.
+- **Các frame đã dùng:** {frame_text}. Synthetic kiểm thử: 000000.
 
 ## 1. Claim
 
-Trên 20 frame KITTI và 80 frame nuScenes, yaw ±3° làm mất hơn 20% tập điểm tham chiếu thuộc vật thể. Retention cao nhất ở bốn cấu hình này là 76.16%; claim được ủng hộ bởi số liệu.
+{claim}
 Giữ nguyên ảnh, point cloud, label và bù ego-motion; chỉ đổi yaw quanh z-up của LiDAR bằng Tr @ D.
 Cấu hình có seed 2445; không có phép ngẫu nhiên nên số liệu hình học tái lập hoàn toàn.
 
@@ -19,24 +34,7 @@ Cấu hình có seed 2445; không có phép ngẫu nhiên nên số liệu hình
 
 | Dataset | Yaw (°) | Trong FOV (%) | GT đúng box riêng (%) | Retention (%) | Dịch pixel trung bình* |
 |---|---:|---:|---:|---:|---:|
-| kitti_mini | -3 | 15.72 | 74.93 | 75.08 | 43.39 |
-| kitti_mini | -2 | 15.73 | 84.22 | 84.31 | 29.01 |
-| kitti_mini | -1 | 15.73 | 94.52 | 94.60 | 14.54 |
-| kitti_mini | -0.5 | 15.73 | 98.28 | 98.41 | 7.28 |
-| kitti_mini | 0 | 15.74 | 99.56 | 100.00 | 0.00 |
-| kitti_mini | 0.5 | 15.75 | 97.20 | 97.53 | 7.28 |
-| kitti_mini | 1 | 15.75 | 92.85 | 93.15 | 14.55 |
-| kitti_mini | 2 | 15.75 | 83.92 | 84.18 | 29.01 |
-| kitti_mini | 3 | 15.76 | 75.92 | 76.16 | 43.40 |
-| nuscenes_mini_subset | -3 | 8.74 | 73.41 | 73.44 | 75.28 |
-| nuscenes_mini_subset | -2 | 8.73 | 83.83 | 83.87 | 50.30 |
-| nuscenes_mini_subset | -1 | 8.73 | 94.32 | 94.36 | 25.21 |
-| nuscenes_mini_subset | -0.5 | 8.73 | 98.26 | 98.30 | 12.62 |
-| nuscenes_mini_subset | 0 | 8.73 | 99.95 | 100.00 | 0.00 |
-| nuscenes_mini_subset | 0.5 | 8.72 | 98.30 | 98.31 | 12.62 |
-| nuscenes_mini_subset | 1 | 8.72 | 94.43 | 94.44 | 25.21 |
-| nuscenes_mini_subset | 2 | 8.72 | 83.57 | 83.57 | 50.29 |
-| nuscenes_mini_subset | 3 | 8.71 | 72.73 | 72.72 | 75.27 |
+{table}
 
 *Dịch pixel: trung bình median từng frame trên điểm còn trong FOV ở cả baseline và drift.
 GT đúng box riêng: điểm trong 3D GT và FOV baseline, sau perturb còn trong 2D box của cùng object; điểm ra khỏi ảnh tính là sai.
@@ -58,7 +56,7 @@ Hai dataset khác số beam (64/32), FOV, ảnh và phân bố object; nuScenes 
 ![baseline trên, drift dưới; điểm tham chiếu màu tím](../results/figures/fail_02_gt_points_zoom.png)
 Ảnh toàn cảnh: [baseline/drift](../results/figures/fail_01_fov_misses_drift.png).
 
-kitti_mini frame 000001, yaw -3°: retention chỉ 0.00% trên 97 điểm tham chiếu, trong khi FOV chỉ đổi +0.006 điểm phần trăm.
+{failure['dataset']} frame {failure['frame']}, yaw {failure['yaw_deg']:g}°: retention chỉ {failure['retention_pct']:.2f}% trên {failure['reference_object_points']} điểm tham chiếu, trong khi FOV chỉ đổi {failure['fov_change_pp']:+.3f} điểm phần trăm.
 Lỗi **Geometry**: yaw extrinsic sai làm điểm lệch khỏi object. Lỗi **Metric**: cảnh báo chỉ dựa trên |ΔFOV| ≥ 1 điểm phần trăm sẽ bỏ sót case này, vì điểm lệch khỏi xe/người nhưng vẫn trong ảnh.
 Loss ≥20% có thể cảnh báo case này, nhưng cần GT và baseline đúng; chưa phải bộ phát hiện drift tự động lúc vận hành.
 Hạn chế: ngưỡng ≥5 điểm bỏ qua object quá thưa; box 2D có nền/che khuất, và box 2D nuScenes suy từ 3D nên không phải GT camera độc lập. Bù ego-motion chưa bù chuyển động object hay deskew toàn sweep.
@@ -97,3 +95,9 @@ Trước nộp: đổi tên fork đúng mẫu, push source/results/report, nộp
 | OpenAI Codex | Đọc đề, chọn topic, viết projection, benchmark, tests, notebook, báo cáo và tạo artifacts từ code chạy thật | Agent chạy verify_data, kiểm thử điểm (10,0,0), NaN/Inf/FOV, box xoay; benchmark hai lần, đối chiếu CSV và mở ảnh. Học viên cần tự chạy notebook và đọc/giải thích code trước nộp. |
 
 Không khai báo học viên đã tự kiểm chứng trong phiên này. Không dùng detector/checkpoint, không bịa số liệu; bảng sinh từ CSV.
+'''
+    Path('report/REPORT.md').write_text(text,encoding='utf8')
+    print('Generated report/REPORT.md from measured CSVs')
+
+if __name__ == '__main__':
+    main()

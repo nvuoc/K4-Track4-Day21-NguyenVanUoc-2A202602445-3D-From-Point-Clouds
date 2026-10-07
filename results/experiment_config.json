@@ -1,0 +1,24 @@
+{
+  "data_roots": [
+    "data/kitti_mini",
+    "data/nuscenes_mini_subset"
+  ],
+  "yaw_deg": [
+    -3,
+    -2,
+    -1,
+    -0.5,
+    0,
+    0.5,
+    1,
+    2,
+    3
+  ],
+  "out_dir": "results",
+  "min_object_points": 5,
+  "seed": 2445,
+  "random_operations": false,
+  "cohort": "GT 3D + baseline FOV + own baseline 2D bbox; >=min-object-points",
+  "aggregation": "point-weighted; duplicated memberships counted per object",
+  "ego_motion_compensation": true
+}

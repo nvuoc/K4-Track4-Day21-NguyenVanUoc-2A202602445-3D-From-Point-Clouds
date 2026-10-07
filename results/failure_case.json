@@ -1,0 +1,10 @@
+{
+  "dataset": "kitti_mini",
+  "data_root": "data/kitti_mini",
+  "frame": "000001",
+  "yaw_deg": -3,
+  "loss_pct": 100.0,
+  "retention_pct": 0.0,
+  "fov_change_pp": 0.005820334586092102,
+  "reference_object_points": 97
+}

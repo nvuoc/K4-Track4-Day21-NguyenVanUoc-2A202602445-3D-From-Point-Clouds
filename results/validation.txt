@@ -1,0 +1,8 @@
+PASS: data verification, 5 geometry tests, repeated benchmark CSV hashes match.
+{
+  "results/data_health.csv": "c7fe50004341d4291eb9f45faaab7dc8d4e20a9d422ea5ab66b51747f33ec718",
+  "results/frame_manifest.csv": "f72b167c3af05108258ae840c233bdcf04620cf56c7885efcc016694967ba2fe",
+  "results/object_retention.csv": "cd1ec6024af52d735e23f53690ff2b43c75745474e7533c37bee7c3d9c3b5997",
+  "results/yaw_perturb_sweep.csv": "4a7facb0abab7f1fa6d27856a855fceddf4fc7391b3eebcdb112e540a69fc7bf",
+  "results/yaw_summary.csv": "b5bd8a2ba720b60eee5d7190b0f5145c936e825ec346f9829dfdc600d1c6c0fb"
+}
